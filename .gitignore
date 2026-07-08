@@ -2,3 +2,6 @@
 
 .venv/
 .env
+
+*.db
+guzo-build-guide.md
