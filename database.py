@@ -31,8 +31,14 @@ def get_all_questions(con):
     cur.execute("SELECT * FROM questions")
     return cur.fetchall()
 
+
+# async def ()
+
 if __name__ == "__main__":
     con = init_db()
-    insert_question(con, "sample question", "1", "technical", "pheebs")
+    # insert_question(con, "sample question", "1", "technical", "pheebs")
     for row in get_all_questions(con):
         print(row)
+        
+        
+    # conv_handler = Conver
