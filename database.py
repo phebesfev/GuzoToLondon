@@ -14,6 +14,15 @@ def init_db():
             created_at TEXT DEFAULT CURRENT_TIMESTAMP  -- type + your default value
         )
     """)
+    
+    cur.execute("""
+                CREATE TABLE IF NOT EXISTS related_question (
+                    question_id_a INTEGER NOT NULL,
+                    question_id_b INTEGER NOT NULL,
+                    similarity_score REAL NOT NULL
+
+                )
+                 """)
     con.commit()
     return con
 
