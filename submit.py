@@ -3,8 +3,10 @@ from telegram import Update,ReplyKeyboardRemove,ReplyKeyboardMarkup
 from dotenv import load_dotenv
 import os
 from uuid import uuid4
+from embedding import toVector
+from embedding import cosineSimilarity
 
-from database import insert_question,init_db
+from database import insert_question,init_db,insert_related_question,get_embedding
 
 load_dotenv()
 API_TOKEN = str(os.environ.get("API_TOKEN"))
@@ -40,12 +42,25 @@ async def round_recived(update:Update, context:ContextTypes.DEFAULT_TYPE):
 async def category_recived(update:Update, context:ContextTypes.DEFAULT_TYPE):
 
     context.user_data['category'] = update.message.text
+
     question = context.user_data["question"]
     round = context.user_data["round"]
     category = context.user_data["category"]
     user = update.effective_user.id
+    embedding = toVector(question)
     # print(question,round,category)
-    insert_question(con,question,round,category,user)
+    
+    new_id = insert_question(con,question,round,category,embedding,user)
+    
+    
+    vec = get_embedding(con)
+    
+    for i in range(len(vec)-1):
+        similarity_score = cosineSimilarity(embedding,vec[i][1])
+        if similarity_score > 0.75:
+            insert_related_question(con,new_id,vec[i][0],similarity_score)
+    # print(vec)
+   
     context.user_data.clear()
     return ConversationHandler.END
     

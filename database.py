@@ -1,4 +1,5 @@
 import sqlite3
+import numpy as np
 
 def init_db():
     con = sqlite3.connect('guzo.db')
@@ -26,14 +27,29 @@ def init_db():
     con.commit()
     return con
 
-def insert_question(con, text, round_, category, submitted_by):
+def insert_question(con, text, round_, category, embedding, submitted_by):
     cur = con.cursor()
     cur.execute(
-        "INSERT INTO questions (text,round,category,submitted_by) VALUES (?,?,?,?)",  
+        "INSERT INTO questions (text,round,category,embedding,submitted_by) VALUES (?,?,?,?,?)",  
         # -- list the columns you're actually inserting, matching ? count
-        (text, round_, category, submitted_by)                                          # the real values, in the same order
+        (text, round_, category,embedding, submitted_by)                                          # the real values, in the same order
     )
     con.commit()
+    return cur.lastrowid
+    
+    
+def insert_related_question(con,question_id_a,question_id_b,similarity_score):
+    cur = con.cursor()
+    cur.execute("""
+                INSERT INTO related_question 
+                (question_id_a,question_id_b,similarity_score) 
+                VALUES (?,?,?)
+                 """,
+                 (question_id_a,question_id_b,similarity_score)
+                 )
+    con.commit()
+    
+               
 
 def get_all_questions(con):
     cur = con.cursor()
@@ -41,13 +57,54 @@ def get_all_questions(con):
     return cur.fetchall()
 
 
+def get_all_related_question(con):
+    cur = con.cursor()
+    cur.execute("SELECT * FROM related_question")
+  
+    return cur.fetchall()
+    
+def get_embedding(con):
+    cur = con.cursor()
+    cur.execute("""
+                SELECT id,embedding 
+                FROM questions
+                WHERE embedding IS NOT NULL
+                 """)
+    blob = cur.fetchall()
+    vec = [None]* (len(blob))
+    
+    for i in range(len(blob)):
+        
+        
+        vec[i] = (blob[i][0],np.frombuffer(blob[i][1],dtype = np.float32))
+        print(vec[0])
+    return vec
+    
+
+
 # async def ()
 
 if __name__ == "__main__":
     con = init_db()
-    # insert_question(con, "sample question", "1", "technical", "pheebs")
+    cur  = con.cursor()
+    
+    
+    # to check if we can succesfully get retrive back the blob to fload and do the cosine similarity
+    cur.execute("""
+                SELECT embedding
+                FROM questions
+                WHERE id = 6
+                """)
+    blob = cur.fetchone()[0]
+    vec = np.frombuffer(blob,dtype = np.float32)
+   
+    
+   
     for row in get_all_questions(con):
         print(row)
+
+    for related in get_all_related_question(con):
+        print(related)
         
         
     # conv_handler = Conver
