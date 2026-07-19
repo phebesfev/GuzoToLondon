@@ -76,14 +76,28 @@ def get_embedding(con):
         vec[i] = (blob[i][0],np.frombuffer(blob[i][1],dtype = np.float32))
         print(vec[0])
     return vec
+
+def pull_all_id(con):
+    cur  = con.cursor()
+    cur.execute(
+        """
+        SELECT id
+        FROM questions
+        """    
+    )
+    all_ids = cur.fetchall()
+    all_id = [id[0] for id in all_ids]
+        
+    return all_id
     
 if __name__ == "__main__":
     con = init_db()
     cur  = con.cursor()
+    print(pull_all_id(con))
     
-    for row in get_all_questions(con):
-        print(row)
+    # for row in get_all_questions(con):
+    #     print(row)
 
-    for related in get_all_related_question(con):
-        print(related)
+    # for related in get_all_related_question(con):
+    #     print(related)
         

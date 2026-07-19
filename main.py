@@ -2,6 +2,7 @@ from telegram import Update
 from dotenv import load_dotenv
 import os
 from telegram.ext import ApplicationBuilder,ContextTypes,CommandHandler,MessageHandler,filters
+from randomQuestion import randomQuestion
 
 load_dotenv()
 API_TOKEN = str(os.environ.get("API_TOKEN"))
@@ -29,10 +30,14 @@ async def parrot(update:Update, context:ContextTypes.DEFAULT_TYPE):
     )
     
     
+
+    
+    
 if __name__ == "__main__":
     application  = ApplicationBuilder().token(API_TOKEN).build() 
     application.add_handler(CommandHandler('start',start))
     application.add_handler(MessageHandler(filters.TEXT&(~filters.COMMAND),parrot))
+    application.add_handler(CommandHandler('random',randomQuestion))
     
     application.run_polling()
     
