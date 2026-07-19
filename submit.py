@@ -48,18 +48,17 @@ async def category_recived(update:Update, context:ContextTypes.DEFAULT_TYPE):
     category = context.user_data["category"]
     user = update.effective_user.id
     embedding = toVector(question)
-    # print(question,round,category)
+  
     
     new_id = insert_question(con,question,round,category,embedding,user)
-    
-    
     vec = get_embedding(con)
     
-    for i in range(len(vec)-1):
+    for i in range(len(vec)):
+        if vec[i][0] == new_id:
+            continue
         similarity_score = cosineSimilarity(embedding,vec[i][1])
         if similarity_score > 0.75:
             insert_related_question(con,new_id,vec[i][0],similarity_score)
-    # print(vec)
    
     context.user_data.clear()
     return ConversationHandler.END

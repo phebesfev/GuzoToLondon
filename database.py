@@ -15,7 +15,6 @@ def init_db():
             created_at TEXT DEFAULT CURRENT_TIMESTAMP  -- type + your default value
         )
     """)
-    
     cur.execute("""
                 CREATE TABLE IF NOT EXISTS related_question (
                     question_id_a INTEGER NOT NULL,
@@ -70,41 +69,21 @@ def get_embedding(con):
                 FROM questions
                 WHERE embedding IS NOT NULL
                  """)
+    
     blob = cur.fetchall()
     vec = [None]* (len(blob))
-    
     for i in range(len(blob)):
-        
-        
         vec[i] = (blob[i][0],np.frombuffer(blob[i][1],dtype = np.float32))
         print(vec[0])
     return vec
     
-
-
-# async def ()
-
 if __name__ == "__main__":
     con = init_db()
     cur  = con.cursor()
     
-    
-    # to check if we can succesfully get retrive back the blob to fload and do the cosine similarity
-    cur.execute("""
-                SELECT embedding
-                FROM questions
-                WHERE id = 6
-                """)
-    blob = cur.fetchone()[0]
-    vec = np.frombuffer(blob,dtype = np.float32)
-   
-    
-   
     for row in get_all_questions(con):
         print(row)
 
     for related in get_all_related_question(con):
         print(related)
         
-        
-    # conv_handler = Conver
