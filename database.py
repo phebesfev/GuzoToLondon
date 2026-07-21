@@ -89,11 +89,20 @@ def pull_all_id(con):
     all_id = [id[0] for id in all_ids]
         
     return all_id
+
+def select_question(con,id_number):
+    cur = con.cursor()
+    cur.execute(" SELECT text FROM questions WHERE id  = ?",(id_number,))
+
+    question = cur.fetchone()
+    return question[0]
+    
     
 if __name__ == "__main__":
     con = init_db()
     cur  = con.cursor()
     print(pull_all_id(con))
+    print(select_question(con,11))
     
     # for row in get_all_questions(con):
     #     print(row)
