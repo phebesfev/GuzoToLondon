@@ -8,8 +8,7 @@ from embedding import cosineSimilarity
 
 from database import insert_question,init_db,insert_related_question,get_embedding
 
-load_dotenv()
-API_TOKEN = str(os.environ.get("API_TOKEN"))
+
 
 QUESTION,ROUND,CATEGORY = range(3)
 
@@ -71,20 +70,20 @@ async def cancel(update:Update, context:ContextTypes.DEFAULT_TYPE):
     return ConversationHandler.END
     
 
-def main(): 
-    application = ApplicationBuilder().token(API_TOKEN).build()
-    conv_handler = ConversationHandler(
-        entry_points= [CommandHandler("submit",submit)],
-        states={
-            QUESTION:[MessageHandler(filters.TEXT & ~ filters.COMMAND,question_received)],
-            ROUND:[MessageHandler(filters.TEXT & ~ filters.COMMAND,round_recived)],
-            CATEGORY:[MessageHandler(filters.TEXT & ~ filters.COMMAND,category_recived)]
-            },
-        fallbacks=[CommandHandler("cancel",cancel)],
-    )
-    application.add_handler(conv_handler)
-    application.run_polling(allowed_updates=Update.ALL_TYPES)
+# def main(): 
+#     application = ApplicationBuilder().token(API_TOKEN).build()
+#     conv_handler = ConversationHandler(
+#         entry_points= [CommandHandler("submit",submit)],
+#         states={
+#             QUESTION:[MessageHandler(filters.TEXT & ~ filters.COMMAND,question_received)],
+#             ROUND:[MessageHandler(filters.TEXT & ~ filters.COMMAND,round_recived)],
+#             CATEGORY:[MessageHandler(filters.TEXT & ~ filters.COMMAND,category_recived)]
+#             },
+#         fallbacks=[CommandHandler("cancel",cancel)],
+#     )
+#     application.add_handler(conv_handler)
+#     application.run_polling(allowed_updates=Update.ALL_TYPES)
     
 
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()

@@ -1,19 +1,40 @@
 from telegram.ext import ContextTypes
 from telegram import Update
-from database import init_db,pull_all_id,select_question
+from database import init_db,pull_all_id,select_question,pull_id_withRound
 import random
 
 
 con = init_db()
 async def randomQuestion(update:Update,context:ContextTypes.DEFAULT_TYPE):
-    ids = pull_all_id(con)
-    id_number = random.choice(ids)
-    print(id_number)
-    question = select_question(con,id_number)
-    print(question)
-    await context.bot.send_message(
-        chat_id=update.effective_chat.id,
-        text= question ,
-    )
+    chosen_round = context.args
     
-    return None
+    if chosen_round:
+        ids = pull_id_withRound(con,chosen_round[0])
+
+    else:
+        ids = pull_all_id(con)
+    
+    if ids:  
+        id_number = random.choice(ids)
+        question = select_question(con,id_number)
+        
+        print(id_number)
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text= question ,
+        )
+    else:
+             await context.bot.send_message(
+                    chat_id=update.effective_chat.id,
+                    text= f'There is no chosen_round{chosen_round[0]} question please select another round' ,
+                )
+    
+# the plan is 
+#1.take the command handler /random, the same as before
+# 2. update randonQuestion Function to accept if there are words after /random or not, by checking if the argument has something or not
+# 3.if empty it will be the same as prev
+# 4.if not, check the actual argument, then if for example 2, we make it both id+round if round exists
+
+
+
+

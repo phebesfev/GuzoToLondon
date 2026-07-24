@@ -52,7 +52,7 @@ def insert_related_question(con,question_id_a,question_id_b,similarity_score):
 
 def get_all_questions(con):
     cur = con.cursor()
-    cur.execute("SELECT * FROM questions")
+    cur.execute("SELECT text,round FROM questions")
     return cur.fetchall()
 
 
@@ -90,6 +90,22 @@ def pull_all_id(con):
         
     return all_id
 
+def pull_id_withRound(con,round):
+    cur  = con.cursor()
+    cur.execute(
+        """
+        SELECT id
+        FROM questions
+        WHERE round = ?
+        """ 
+        ,(round,)   
+    )
+    all_ids = cur.fetchall()
+    all_id = [id[0] for id in all_ids]
+        
+    return all_id
+    
+
 def select_question(con,id_number):
     cur = con.cursor()
     cur.execute(" SELECT text FROM questions WHERE id  = ?",(id_number,))
@@ -104,8 +120,8 @@ if __name__ == "__main__":
     print(pull_all_id(con))
     print(select_question(con,11))
     
-    # for row in get_all_questions(con):
-    #     print(row)
+    for row in get_all_questions(con):
+        print(row)
 
     # for related in get_all_related_question(con):
     #     print(related)

@@ -1,8 +1,11 @@
 from telegram import Update
 from dotenv import load_dotenv
 import os
-from telegram.ext import ApplicationBuilder,ContextTypes,CommandHandler,MessageHandler,filters
+from telegram.ext import ApplicationBuilder,ContextTypes,CommandHandler, ConversationHandler,MessageHandler,filters
 from randomQuestion import randomQuestion
+from submit import submit,question_received,round_recived,category_recived,cancel
+
+
 
 load_dotenv()
 API_TOKEN = str(os.environ.get("API_TOKEN"))
@@ -15,7 +18,7 @@ logging.basicConfig(
 
 # send hey on /start command
 async def start(update:Update,context:ContextTypes.DEFAULT_TYPE):
-    print(id(context.bot))
+    #print(id(context.bot))
     await context.bot.send_message(
         chat_id = update.effective_chat.id,
         text = "hey I am a bot, talk to me about anything lol"
@@ -23,7 +26,7 @@ async def start(update:Update,context:ContextTypes.DEFAULT_TYPE):
     
 # echoing function
 async def parrot(update:Update, context:ContextTypes.DEFAULT_TYPE):
-    print(id(context.bot))
+    #print(id(context.bot))
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
         text = update.message.text,
@@ -31,13 +34,28 @@ async def parrot(update:Update, context:ContextTypes.DEFAULT_TYPE):
     
     
 
-    
+QUESTION,ROUND,CATEGORY = range(3)   
     
 if __name__ == "__main__":
     application  = ApplicationBuilder().token(API_TOKEN).build() 
     application.add_handler(CommandHandler('start',start))
+    
+    
+    
+    conv_handler = ConversationHandler(
+            entry_points= [CommandHandler("submit",submit)],
+            states={
+                QUESTION:[MessageHandler(filters.TEXT & ~ filters.COMMAND,question_received)],
+                ROUND:[MessageHandler(filters.TEXT & ~ filters.COMMAND,round_recived)],
+                CATEGORY:[MessageHandler(filters.TEXT & ~ filters.COMMAND,category_recived)]
+                },
+            fallbacks=[CommandHandler("cancel",cancel)],
+        )
+    application.add_handler(conv_handler)
+    
     application.add_handler(MessageHandler(filters.TEXT&(~filters.COMMAND),parrot))
     application.add_handler(CommandHandler('random',randomQuestion))
+    
     
     application.run_polling()
     
