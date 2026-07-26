@@ -4,7 +4,8 @@ import os
 from telegram.ext import ApplicationBuilder,ContextTypes,CommandHandler, ConversationHandler,MessageHandler,filters
 from randomQuestion import randomQuestion
 from submit import submit,question_received,round_recived,category_recived,cancel
-
+import httpx
+from telegram.request import HTTPXRequest
 
 
 load_dotenv()
@@ -37,7 +38,10 @@ async def parrot(update:Update, context:ContextTypes.DEFAULT_TYPE):
 QUESTION,ROUND,CATEGORY = range(3)   
     
 if __name__ == "__main__":
-    application  = ApplicationBuilder().token(API_TOKEN).build() 
+    request = HTTPXRequest(
+    httpx_kwargs={"transport": httpx.AsyncHTTPTransport(local_address="0.0.0.0")}
+    )
+    application  = ApplicationBuilder().token(API_TOKEN).request(request).build() 
     application.add_handler(CommandHandler('start',start))
     
     
@@ -57,5 +61,5 @@ if __name__ == "__main__":
     application.add_handler(CommandHandler('random',randomQuestion))
     
     
-    application.run_polling()
+    application.run_polling(allowed_updates=Update.ALL_TYPES)
     
