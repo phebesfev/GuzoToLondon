@@ -52,8 +52,10 @@ def insert_related_question(con,question_id_a,question_id_b,similarity_score):
 
 def get_all_questions(con):
     cur = con.cursor()
-    cur.execute("SELECT text,round FROM questions")
-    return cur.fetchall()
+    cur.execute("SELECT text,round,category,embedding FROM questions")
+    question = cur.fetchall()
+    
+    return question
 
 
 def get_all_related_question(con):
@@ -74,8 +76,10 @@ def get_embedding(con):
     vec = [None]* (len(blob))
     for i in range(len(blob)):
         vec[i] = (blob[i][0],np.frombuffer(blob[i][1],dtype = np.float32))
-        print(vec[0])
+        
     return vec
+
+
 
 def pull_all_id(con):
     cur  = con.cursor()
@@ -112,17 +116,38 @@ def select_question(con,id_number):
 
     question = cur.fetchone()
     return question[0]
+
+def exact_search(con,word):
+    cur = con.cursor()
+    cur.execute("""
+                SELECT text,round,category
+                FROM questions
+                WHERE text LIKE ?
+                """,
+                (f'%{word}%',))
+    response = cur.fetchall()
+    return response
+
+
+def deleteIfEmbeddingisNull(con):
+    cur = con.cursor()
+    cur.execute(" DELETE  FROM questions WHERE embedding is NULL")
     
     
 if __name__ == "__main__":
     con = init_db()
     cur  = con.cursor()
-    print(pull_all_id(con))
-    print(select_question(con,11))
+    # print(pull_all_id(con))
+    # print(select_question(con,11))
     
-    for row in get_all_questions(con):
-        print(row)
+    # for row in get_all_questions(con):
+    #     print(row)
 
     # for related in get_all_related_question(con):
     #     print(related)
+    
+    # print(exact_search(con,'bloomberg'))
+    # print(deleteIfEmbeddingisNull(con))
+    print(pull_all_id(con))
+    
         
