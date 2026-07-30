@@ -6,7 +6,7 @@ from randomQuestion import randomQuestion
 from submit import submit,question_received,round_recived,category_recived,cancel
 import httpx
 from telegram.request import HTTPXRequest
-from search import keywordSearch,semanticSearch
+from search import search
 
 
 load_dotenv()
@@ -60,7 +60,7 @@ if __name__ == "__main__":
     
     application.add_handler(MessageHandler(filters.TEXT&(~filters.COMMAND),parrot))
     application.add_handler(CommandHandler('random',randomQuestion))
-    application.add_handler(CommandHandler('search',semanticSearch))
+    application.add_handler(CommandHandler('search',search))
     
     
     application.run_polling(allowed_updates=Update.ALL_TYPES)
