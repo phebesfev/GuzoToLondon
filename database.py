@@ -143,11 +143,11 @@ if __name__ == "__main__":
     # for row in get_all_questions(con):
     #     print(row)
 
-    # for related in get_all_related_question(con):
-    #     print(related)
+    for related in get_all_related_question(con):
+        print(related)
     
     # print(exact_search(con,'bloomberg'))
     # print(deleteIfEmbeddingisNull(con))
-    print(pull_all_id(con))
+    # print(pull_all_id(con))
     
         

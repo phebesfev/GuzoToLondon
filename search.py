@@ -9,61 +9,35 @@ con  = init_db()
 
 
 
-async def keywordSearch(update:Update,context:ContextTypes.DEFAULT_TYPE,dic):
+async def keywordSearch(update:Update,context:ContextTypes.DEFAULT_TYPE,word):
+    dic = {}
+    response = exact_search(con,word)
     
-    if context.args:
-        word = ' '.join(context.args)   
-        response = exact_search(con,word)
-        
-        if response:
-        
-            for question in response:
-                question_description  = question[0]
-                question_round = question[1]
-                question_type = question[2]
-                
-                if (question_description,question_round,question_type) in dic:
-                    dic[(question_description,question_round,question_type)] +=1
-                else:
-                    dic[(question_description,question_round,question_type)] = 1
+    if response:
+    
+        for question in response:
+            question_description  = question[0]
+            question_round = question[1]
+            question_type = question[2]
             
-              
-            # sorted_by_key = dict(sorted(dic.items(),reverse=True))
-            # for key,value in sorted_by_key.items():
-            #     text,round,category = key
-            #     frequency = value
-            #     #score = round(score,2) #rounding for 2 round places to make it readable
-                
-            #     await context.bot.send_message(
-            #         chat_id=update.effective_chat.id,
-            #         # text = 'trial'
-            #         text=f' Description: {text}\n'
-            #             f'Round: {round}\n'
-            #             f'Type: {category}\n'
-            #             f'· Asked {frequency} times'  
-            #     )
+            if (question_description,question_round,question_type) in dic:
+                dic[(question_description,question_round,question_type)]['count'] +=1
+            else:
+                dic[(question_description,question_round,question_type)]= {'count':1,'score':None}
+
         
-        else:
-            await context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text='No question matches your query, please search another question'
-            )
+
             
-    else:
-        await context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text='Please include a question, for example: /search google drive system'
-            )
-        
-    return True
+    
+    return dic
+  
+    
    
     
 # semantic search
-async def semanticSearch(update:Update,context:ContextTypes.DEFAULT_TYPE,dic):
+async def semanticSearch(update:Update,context:ContextTypes.DEFAULT_TYPE,word):
+        dic = {}
     
-    
-    if context.args:
-        word = ' '.join(context.args)        
         embedding = toVector(word)
         questions = get_all_questions(con)
         
@@ -80,15 +54,47 @@ async def semanticSearch(update:Update,context:ContextTypes.DEFAULT_TYPE,dic):
                     
                     # saving in a dictionary to track
                     if (question_description,question_round,question_type) in dic:
-                        dic[(question_description,question_round,question_type)] +=1
+                        dic[(question_description,question_round,question_type)]['count'] +=1
                     else:
-                        dic[(question_description,question_round,question_type)] = 1
-                
-        sorted_by_key = dict(sorted(dic.items(),reverse=True))
-        for key,value in sorted_by_key.items():
-            text,round,category = key
-            frequency = value
-            #score = round(score,2) #rounding for 2 round places to make it readable
+                        dic[(question_description,question_round,question_type)]= {'count':1, 'score':score}
+  
+        return dic
+
+             
+async def search(update:Update,context:ContextTypes.DEFAULT_TYPE):
+    if not context.args:
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text='Please include a question, for example: /search google drive system'
+        )
+        
+        return 
+    
+ 
+    word = ' '.join(context.args)   
+    
+    kw = await keywordSearch(update,context,word)
+    sm = await semanticSearch(update,context,word)
+    
+    merged_dic  = {}
+    
+    for k in kw.keys() | sm.keys():
+        merged_dic[k] = {
+            'count': max(kw.get(k, {}).get('count', 0), sm.get(k, {}).get('count', 0)),
+            'score': sm.get(k, {}).get('score'),
+        }
+ 
+        
+    
+    sorted_by_key = dict(sorted(merged_dic.items(),key = lambda item:item[1]['score'] or 0, reverse = True))
+    for key,value in sorted_by_key.items():
+        text,round,category = key
+        frequency = value['count']
+        score = value['score']
+        
+        if score != None:
+            print('before',score)
+          
             
             await context.bot.send_message(
                 chat_id=update.effective_chat.id,
@@ -96,22 +102,20 @@ async def semanticSearch(update:Update,context:ContextTypes.DEFAULT_TYPE,dic):
                 text=f' Description: {text}\n'
                     f'Round: {round}\n'
                     f'Type: {category}\n'
-                    f'· Asked {frequency} times'  
-                    # removed similarity: {score} because I want to do an overall dic and keyword doesn't have score, even if it has it will be different but with the same question
+                    f'· Asked {frequency} times\n'  
+                    f'similarity: {score:.2f}'  #because I want to do an overall dic and keyword doesn't have score, even if it has it will be different but with the same question
             )
-                    
-    else:
-        await context.bot.send_message(
+            
+        else:
+            await context.bot.send_message(
                 chat_id=update.effective_chat.id,
-                text='Please include a question, for example: /search google drive system'
+                # text = 'trial'
+                text=f' Description: {text}\n'
+                    f'Round: {round}\n'
+                    f'Type: {category}\n'
+                    f'· Asked {frequency} times'  
             )
-                    
-                    
-    # putting them in a dictionary with score,text,round,:frequency and then seinding it with the limits
-
-             
-async def search(update:Update,context:ContextTypes.DEFAULT_TYPE):
-    dic = {}
-    firstSearch = await keywordSearch(update,context,dic)
-    if firstSearch:
-        await semanticSearch(update,context,dic)
+            
+            
+        
+        
