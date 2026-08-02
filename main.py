@@ -1,12 +1,13 @@
 from telegram import Update
 from dotenv import load_dotenv
 import os
-from telegram.ext import ApplicationBuilder,ContextTypes,CommandHandler, ConversationHandler,MessageHandler,filters
+from telegram.ext import ApplicationBuilder,ContextTypes,CommandHandler, ConversationHandler,MessageHandler,filters,CallbackQueryHandler
 from randomQuestion import randomQuestion
 from submit import submit,question_received,round_recived,category_recived,cancel
 import httpx
 from telegram.request import HTTPXRequest
 from search import search
+from filtering_and_buttons import button,round
 
 
 load_dotenv()
@@ -44,9 +45,6 @@ if __name__ == "__main__":
     )
     application  = ApplicationBuilder().token(API_TOKEN).request(request).build() 
     application.add_handler(CommandHandler('start',start))
-    
-    
-    
     conv_handler = ConversationHandler(
             entry_points= [CommandHandler("submit",submit)],
             states={
@@ -56,12 +54,13 @@ if __name__ == "__main__":
                 },
             fallbacks=[CommandHandler("cancel",cancel)],
         )
+
     application.add_handler(conv_handler)
-    
     application.add_handler(MessageHandler(filters.TEXT&(~filters.COMMAND),parrot))
     application.add_handler(CommandHandler('random',randomQuestion))
     application.add_handler(CommandHandler('search',search))
-    
+    application.add_handler(CommandHandler('round',round))
+    application.add_handler(CallbackQueryHandler(button))
     
     application.run_polling(allowed_updates=Update.ALL_TYPES)
     

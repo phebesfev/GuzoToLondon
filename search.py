@@ -77,7 +77,7 @@ async def search(update:Update,context:ContextTypes.DEFAULT_TYPE):
     sm = await semanticSearch(update,context,word)
     
     merged_dic  = {}
-    
+
     for k in kw.keys() | sm.keys():
         merged_dic[k] = {
             'count': max(kw.get(k, {}).get('count', 0), sm.get(k, {}).get('count', 0)),
