@@ -9,7 +9,7 @@ def init_db():
             id INTEGER PRIMARY KEY,                 -- type + PRIMARY KEY
             text TEXT NOT NULL,               -- type + NOT NULL
             round TEXT NOT NULL CHECK (round IN ('1', '2', 'system design', 'behavioral', 'final')),   -- type, NOT NULL, your finalized value list
-            category TEXT,               -- type only — nullable, no NOT NULL
+            category TEXT CHECK (category IN ('technical','behavioral')),               -- type only — nullable, no NOT NULL
             embedding BLOB,              -- type only — will hold bytes later, NULL for now
             submitted_by INTEGER,           -- type only — nullable
             created_at TEXT DEFAULT CURRENT_TIMESTAMP  -- type + your default value
@@ -25,6 +25,7 @@ def init_db():
                  """)
     con.commit()
     return con
+
 
 def insert_question(con, text, round_, category, embedding, submitted_by):
     cur = con.cursor()
@@ -108,6 +109,21 @@ def pull_id_withRound(con,round):
     all_id = [id[0] for id in all_ids]
         
     return all_id
+
+def pull_id_withCategory(con,category):
+    cur  = con.cursor()
+    cur.execute(
+        """
+        SELECT id
+        FROM questions
+        WHERE category = ?
+        """ 
+        ,(category,)   
+    )
+    all_ids = cur.fetchall()
+    all_id = [id[0] for id in all_ids]
+        
+    return all_id
     
 
 def select_question(con,id_number):
@@ -133,6 +149,12 @@ def deleteIfEmbeddingisNull(con):
     cur = con.cursor()
     cur.execute(" DELETE  FROM questions WHERE embedding is NULL")
     
+  
+def getCategory(con):
+    cur = con.cursor()
+    cur.execute("SELECT category, COUNT(*) FROM questions GROUP BY category;")  
+    response = cur.fetchall()
+    return response
     
 if __name__ == "__main__":
     con = init_db()
@@ -143,11 +165,48 @@ if __name__ == "__main__":
     # for row in get_all_questions(con):
     #     print(row)
 
-    for related in get_all_related_question(con):
-        print(related)
+    # for related in get_all_related_question(con):
+    #     print(related)
     
     # print(exact_search(con,'bloomberg'))
     # print(deleteIfEmbeddingisNull(con))
     # print(pull_all_id(con))
+    print(getCategory(con))
+    
+    
+    
+    
+    
+    
+
+
+
+# a code to run migration
+
+# def migration(con):
+#     cur = con.cursor()    
+#      
+#     cur.execute("""
+#         CREATE TABLE questions_new (
+#             id INTEGER PRIMARY KEY,
+#             text TEXT NOT NULL,
+#             round TEXT NOT NULL CHECK (round IN ('1', '2', 'system design', 'behavioral', 'final')),
+#             category TEXT CHECK (category IN ('technical', 'behavioral')),
+#             embedding BLOB,
+#             submitted_by INTEGER,
+#             created_at TEXT DEFAULT CURRENT_TIMESTAMP
+#         )
+#     """)
+    
+#     cur.execute("""
+#         INSERT INTO questions_new (id, text, round, category, embedding, submitted_by, created_at)
+#         SELECT id, text, round, category, embedding, submitted_by, created_at
+#         FROM questions
+#     """)
+    
+#     cur.execute("DROP TABLE questions")
+#     cur.execute("ALTER TABLE questions_new RENAME TO questions")
+    
+#     con.commit()
     
         

@@ -7,7 +7,7 @@ from submit import submit,question_received,round_recived,category_recived,cance
 import httpx
 from telegram.request import HTTPXRequest
 from search import search
-from filtering_and_buttons import button,round
+from filtering_and_buttons import show_round_options,filter,show_category_options,chooseFilter,chooseRound,chooseCategory
 
 
 load_dotenv()
@@ -59,8 +59,13 @@ if __name__ == "__main__":
     application.add_handler(MessageHandler(filters.TEXT&(~filters.COMMAND),parrot))
     application.add_handler(CommandHandler('random',randomQuestion))
     application.add_handler(CommandHandler('search',search))
-    application.add_handler(CommandHandler('round',round))
-    application.add_handler(CallbackQueryHandler(button))
+    application.add_handler(CommandHandler('filter',filter))
+    # application.add_handler(CommandHandler('round',show_round_options))
+    # application.add_handler(CommandHandler('category',show_category_options))
     
+    application.add_handler(CallbackQueryHandler(chooseFilter, pattern='^(roundchoice|categorychoice)$'))
+    application.add_handler(CallbackQueryHandler(chooseRound,    pattern='^round:'))
+    application.add_handler(CallbackQueryHandler(chooseCategory, pattern='^cat:'))
+
     application.run_polling(allowed_updates=Update.ALL_TYPES)
     
