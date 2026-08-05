@@ -6,9 +6,7 @@ import random
 
 con = init_db()
 
-
-
- 
+# what we have in our keyboard
 async def filter(update:Update,context:ContextTypes.DEFAULT_TYPE):
     keyboard = [
         [
@@ -20,8 +18,6 @@ async def filter(update:Update,context:ContextTypes.DEFAULT_TYPE):
     
     markup=InlineKeyboardMarkup(keyboard)
     await update.message.reply_text('please choose filter',reply_markup=markup)
-
-
 
 async def show_round_options(update:Update,context:ContextTypes.DEFAULT_TYPE):
     # callback_data is a one that will be sent, and the invisble part of that will be sent 
@@ -94,7 +90,6 @@ async def chooseCategory(update:Update,context:ContextTypes.DEFAULT_TYPE):
         
 
         
-
 # helper functions
 def getQuestionRound(round):
     chosen_round = round

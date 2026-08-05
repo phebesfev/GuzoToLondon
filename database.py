@@ -1,6 +1,6 @@
 import sqlite3
 import numpy as np
-
+from constants import ROUNDS,CATEGORIES
 def init_db():
     con = sqlite3.connect('guzo.db')
     cur = con.cursor()
@@ -155,6 +155,40 @@ def getCategory(con):
     cur.execute("SELECT category, COUNT(*) FROM questions GROUP BY category;")  
     response = cur.fetchall()
     return response
+
+
+
+round_list = ",".join("'" + k.replace("'", "''") + "'" for k in ROUNDS)
+cat_list   = ",".join("'" + k.replace("'", "''") + "'" for k in CATEGORIES)
+
+
+# a code to run migration
+
+def migration(con):
+    cur = con.cursor()    
+     
+    cur.execute(f"""
+                CREATE TABLE questions_new (
+                    id INTEGER PRIMARY KEY,
+                    text TEXT NOT NULL,
+                    round TEXT NOT NULL CHECK (round IN ({round_list})),
+                    category TEXT CHECK (category IN ({cat_list})),
+                    embedding BLOB,
+                    submitted_by INTEGER,
+                    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+    
+    cur.execute("""
+        INSERT INTO questions_new (id, text, round, category, embedding, submitted_by, created_at)
+        SELECT id, text, round, category, embedding, submitted_by, created_at
+        FROM questions
+    """)
+    
+    cur.execute("DROP TABLE questions")
+    cur.execute("ALTER TABLE questions_new RENAME TO questions")
+    
+    con.commit()
     
 if __name__ == "__main__":
     con = init_db()
@@ -171,6 +205,7 @@ if __name__ == "__main__":
     # print(exact_search(con,'bloomberg'))
     # print(deleteIfEmbeddingisNull(con))
     # print(pull_all_id(con))
+    migration(con)
     print(getCategory(con))
     
     
@@ -178,35 +213,9 @@ if __name__ == "__main__":
     
     
     
-
-
-
-# a code to run migration
-
-# def migration(con):
-#     cur = con.cursor()    
-#      
-#     cur.execute("""
-#         CREATE TABLE questions_new (
-#             id INTEGER PRIMARY KEY,
-#             text TEXT NOT NULL,
-#             round TEXT NOT NULL CHECK (round IN ('1', '2', 'system design', 'behavioral', 'final')),
-#             category TEXT CHECK (category IN ('technical', 'behavioral')),
-#             embedding BLOB,
-#             submitted_by INTEGER,
-#             created_at TEXT DEFAULT CURRENT_TIMESTAMP
-#         )
-#     """)
     
-#     cur.execute("""
-#         INSERT INTO questions_new (id, text, round, category, embedding, submitted_by, created_at)
-#         SELECT id, text, round, category, embedding, submitted_by, created_at
-#         FROM questions
-#     """)
-    
-#     cur.execute("DROP TABLE questions")
-#     cur.execute("ALTER TABLE questions_new RENAME TO questions")
-    
-#     con.commit()
+
+
+
     
         

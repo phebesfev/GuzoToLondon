@@ -60,9 +60,7 @@ if __name__ == "__main__":
     application.add_handler(CommandHandler('random',randomQuestion))
     application.add_handler(CommandHandler('search',search))
     application.add_handler(CommandHandler('filter',filter))
-    # application.add_handler(CommandHandler('round',show_round_options))
-    # application.add_handler(CommandHandler('category',show_category_options))
-    
+
     application.add_handler(CallbackQueryHandler(chooseFilter, pattern='^(roundchoice|categorychoice)$'))
     application.add_handler(CallbackQueryHandler(chooseRound,    pattern='^round:'))
     application.add_handler(CallbackQueryHandler(chooseCategory, pattern='^cat:'))
