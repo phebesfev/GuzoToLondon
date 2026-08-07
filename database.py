@@ -8,7 +8,7 @@ def init_db():
         CREATE TABLE IF NOT EXISTS questions (
             id INTEGER PRIMARY KEY,                 -- type + PRIMARY KEY
             text TEXT NOT NULL,               -- type + NOT NULL
-            round TEXT NOT NULL CHECK (round IN ('1', '2', 'system design', 'behavioral', 'final')),   -- type, NOT NULL, your finalized value list
+            round TEXT NOT NULL CHECK (round IN ('phone', '1', '2', '3', 'final')),   -- type, NOT NULL, your finalized value list
             category TEXT CHECK (category IN ('technical','behavioral')),               -- type only — nullable, no NOT NULL
             embedding BLOB,              -- type only — will hold bytes later, NULL for now
             submitted_by INTEGER,           -- type only — nullable
@@ -128,10 +128,8 @@ def pull_id_withCategory(con,category):
 
 def select_question(con,id_number):
     cur = con.cursor()
-    cur.execute(" SELECT text FROM questions WHERE id  = ?",(id_number,))
-
-    question = cur.fetchone()
-    return question[0]
+    cur.execute(" SELECT text,round,category FROM questions WHERE id  = ?",(id_number,))
+    return cur.fetchone()
 
 def exact_search(con,word):
     cur = con.cursor()
@@ -205,7 +203,7 @@ if __name__ == "__main__":
     # print(exact_search(con,'bloomberg'))
     # print(deleteIfEmbeddingisNull(con))
     # print(pull_all_id(con))
-    migration(con)
+    # migration(con)
     print(getCategory(con))
     
     

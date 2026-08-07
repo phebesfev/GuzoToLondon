@@ -1,5 +1,6 @@
 from telegram.ext import ContextTypes
 from telegram import Update
+from constants import CATEGORIES, ROUNDS
 from database import init_db,pull_all_id,select_question,pull_id_withRound
 import random
 
@@ -16,18 +17,18 @@ async def randomQuestion(update:Update,context:ContextTypes.DEFAULT_TYPE):
     
     if ids:  
         id_number = random.choice(ids)
-        question = select_question(con,id_number)
-        
-        print(id_number)
+        question = select_question(con, id_number)
+        if question:
+            text, round_, category = question
+            await context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text=f'{text}\n\nRound: {ROUNDS[round_]}\nCategory: {CATEGORIES[category]}',
+            )
+    else:
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
-            text= question ,
+            text=f'No questions found for round "{chosen_round[0] if chosen_round else "unknown"}". Valid rounds: phone, 1, 2, 3, final',
         )
-    else:
-             await context.bot.send_message(
-                    chat_id=update.effective_chat.id,
-                    text= f'There is no chosen_round{chosen_round[0]} question please select another round' ,
-                )
     
 # the plan is 
 #1.take the command handler /random, the same as before

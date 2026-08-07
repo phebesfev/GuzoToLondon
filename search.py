@@ -87,15 +87,15 @@ async def search(update:Update,context:ContextTypes.DEFAULT_TYPE):
         
     
     sorted_by_key = dict(sorted(merged_dic.items(),key = lambda item:item[1]['score'] or 0, reverse = True))
+    if not sorted_by_key:
+        await context.bot.send_message(chat_id=update.effective_chat.id, text='No results found.')
+        return
     for key,value in sorted_by_key.items():
         text,round,category = key
         frequency = value['count']
         score = value['score']
         
         if score != None:
-            print('before',score)
-          
-            
             await context.bot.send_message(
                 chat_id=update.effective_chat.id,
                 # text = 'trial'
