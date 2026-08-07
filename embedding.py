@@ -1,4 +1,3 @@
-from sentence_transformers import SentenceTransformer
 import numpy as np
 import os
 from dotenv import load_dotenv
@@ -9,11 +8,7 @@ hf_token = os.environ.get("HF_TOKEN")
 API_URL = "https://api-inference.huggingface.co/models/sentence-transformers/all-MiniLM-L6-v2"
 
 
-
-model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
 def toVector(sentence):
-    # embedding = model.encode(sentence)
-    # return embedding
     response = httpx.post(
         API_URL,
         headers={'Authorization':f"Bearer {hf_token}"},
