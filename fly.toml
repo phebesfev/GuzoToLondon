@@ -1,0 +1,14 @@
+app = "guzo-to-london"
+primary_region = "fra"
+
+[build]
+
+[env]
+  DB_PATH = "/data/guzo.db"
+
+[[mounts]]
+  source = "guzo_data"
+  destination = "/data"
+
+[[vm]]
+  memory = "512mb"

@@ -1,8 +1,12 @@
 import sqlite3
 import numpy as np
+import os
 from constants import ROUNDS,CATEGORIES
+
+DB_PATH = os.environ.get('DB_PATH', 'guzo.db')
+
 def init_db():
-    con = sqlite3.connect('guzo.db')
+    con = sqlite3.connect(DB_PATH)
     cur = con.cursor()
     cur.execute("""
         CREATE TABLE IF NOT EXISTS questions (

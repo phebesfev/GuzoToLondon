@@ -1,5 +1,5 @@
 python-telegram-bot==22.8
 python-dotenv
-sentence-transformers
-numpy
 huggingface-hub
+numpy
+sentence-transformers

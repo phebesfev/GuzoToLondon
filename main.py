@@ -56,7 +56,7 @@ async def error_handler(update,context):
             elif update.effective_chat:
                 await context.bot.send_message(
                     chat_id = update.effective_chat.id,
-                    text = 'sorrt, something went wrong. please try again.'
+                    text = 'sorry, something went wrong. please try again.'
                 )
             
         except Exception:
