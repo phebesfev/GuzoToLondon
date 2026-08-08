@@ -1,11 +1,18 @@
 from telegram import Update
 from telegram.ext import ContextTypes
 from database import init_db,exact_search,get_all_questions
-from embedding import toVector,cosineSimilarity,toFloat
+from huggingface_hub import InferenceClient
+import os
 
 
 SIMILARITY_THRESHOLD = 0.50
 con  = init_db()
+
+# Initialize HuggingFace client for semantic search
+hf_client = InferenceClient(
+    provider="auto",
+    api_key=os.environ.get("HF_TOKEN"),
+)
 
 
 
@@ -37,27 +44,39 @@ async def keywordSearch(update:Update,context:ContextTypes.DEFAULT_TYPE,word):
 # semantic search
 async def semanticSearch(update:Update,context:ContextTypes.DEFAULT_TYPE,word):
         dic = {}
-    
-        embedding = toVector(word)
+
         questions = get_all_questions(con)
-        
-        for question in questions:
-            if question[3]:
-                embedding_new = toFloat(question[3])
-                score = cosineSimilarity(embedding,embedding_new)
-                if score > SIMILARITY_THRESHOLD:
-                    
-                    question_description  = question[0]
-                    question_round = question[1]
-                    question_type = question[2]
-                    
-                    
-                    # saving in a dictionary to track
-                    if (question_description,question_round,question_type) in dic:
-                        dic[(question_description,question_round,question_type)]['count'] +=1
-                    else:
-                        dic[(question_description,question_round,question_type)]= {'count':1, 'score':score}
-  
+
+        if not questions:
+            return dic
+
+        # Extract question texts for batch comparison
+        question_texts = [q[0] for q in questions]
+
+        # Get similarity scores from HuggingFace API
+        try:
+            scores = hf_client.sentence_similarity(
+                sentence=word,
+                other_sentences=question_texts,
+                model="sentence-transformers/all-MiniLM-L6-v2",
+            )
+        except Exception as e:
+            # If API fails, return empty dict (keyword search still works)
+            return dic
+
+        for i, question in enumerate(questions):
+            score = scores[i]
+            if score > SIMILARITY_THRESHOLD:
+                question_description = question[0]
+                question_round = question[1]
+                question_type = question[2]
+
+                # saving in a dictionary to track
+                if (question_description,question_round,question_type) in dic:
+                    dic[(question_description,question_round,question_type)]['count'] +=1
+                else:
+                    dic[(question_description,question_round,question_type)]= {'count':1, 'score':score}
+
         return dic
 
              
