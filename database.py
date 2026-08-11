@@ -159,6 +159,14 @@ def getCategory(con):
     return response
 
 
+def deleteDummyDatas(con):
+    cur = con.cursor()
+    cur.execute("DELETE FROM questions")
+    cur.execute("DELETE FROM related_question")
+    con.commit()
+    return cur.fetchall()
+
+
 
 round_list = ",".join("'" + k.replace("'", "''") + "'" for k in ROUNDS)
 cat_list   = ",".join("'" + k.replace("'", "''") + "'" for k in CATEGORIES)
@@ -208,7 +216,9 @@ if __name__ == "__main__":
     # print(deleteIfEmbeddingisNull(con))
     # print(pull_all_id(con))
     # migration(con)
-    print(getCategory(con))
+    # print(getCategory(con))
+    print(deleteDummyDatas(con))
+  
     
     
     
