@@ -1,6 +1,7 @@
 import sqlite3
 import numpy as np
 from constants import ROUNDS,CATEGORIES
+
 def init_db():
     con = sqlite3.connect('guzo.db')
     cur = con.cursor()
