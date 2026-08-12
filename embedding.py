@@ -19,6 +19,7 @@ async def toVector(sentence):
     "model": "jina-embeddings-v5-text-small",
     "task": "retrieval.query",
     "normalized": True,
+    "dimensions": 384,
     "input": [
         f'{sentence}'
     ]

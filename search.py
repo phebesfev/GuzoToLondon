@@ -38,7 +38,7 @@ async def keywordSearch(update:Update,context:ContextTypes.DEFAULT_TYPE,word):
 async def semanticSearch(update:Update,context:ContextTypes.DEFAULT_TYPE,word):
         dic = {}
     
-        embedding = toVector(word)
+        embedding = await toVector(word)
         questions = get_all_questions(con)
         
         for question in questions:

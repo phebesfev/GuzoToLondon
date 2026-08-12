@@ -57,7 +57,7 @@ async def category_recived(update:Update, context:ContextTypes.DEFAULT_TYPE):
     round = context.user_data["round"]
     category = context.user_data["category"]
     user = update.effective_user.id
-    embedding = toVector(question)
+    embedding = await toVector(question)
   
     try:
         new_id = insert_question(con,question,round,category,embedding,user)
