@@ -1,17 +1,23 @@
-import sqlite3
+import psycopg
 import numpy as np
 from constants import ROUNDS,CATEGORIES
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+DATABASE_URL = os.environ.get("DATABASE_URL")
+
 
 def init_db():
-    con = sqlite3.connect('guzo.db')
+    con = psycopg.connect(DATABASE_URL,prepare_threshold=None)
     cur = con.cursor()
     cur.execute("""
         CREATE TABLE IF NOT EXISTS questions (
-            id INTEGER PRIMARY KEY,                 -- type + PRIMARY KEY
+            id SERIAL PRIMARY KEY,                 -- type + PRIMARY KEY
             text TEXT NOT NULL,               -- type + NOT NULL
             round TEXT NOT NULL CHECK (round IN ('phone', '1', '2', '3', 'final')),   -- type, NOT NULL, your finalized value list
             category TEXT CHECK (category IN ('technical','behavioral')),               -- type only — nullable, no NOT NULL
-            embedding BLOB,              -- type only — will hold bytes later, NULL for now
+            embedding BYTEA,              -- type only — will hold bytes later, NULL for now
             submitted_by INTEGER,           -- type only — nullable
             created_at TEXT DEFAULT CURRENT_TIMESTAMP  -- type + your default value
         )
@@ -31,12 +37,13 @@ def init_db():
 def insert_question(con, text, round_, category, embedding, submitted_by):
     cur = con.cursor()
     cur.execute(
-        "INSERT INTO questions (text,round,category,embedding,submitted_by) VALUES (?,?,?,?,?)",  
-        # -- list the columns you're actually inserting, matching ? count
+        "INSERT INTO questions (text,round,category,embedding,submitted_by) VALUES (%s,%s,%s,%s,%s) RETURNING id",  
+        # -- list the columns you're actually inserting, matching %s count
         (text, round_, category,embedding, submitted_by)                                          # the real values, in the same order
     )
+    new_id = cur.fetchone()[0]
     con.commit()
-    return cur.lastrowid
+    return new_id
     
     
 def insert_related_question(con,question_id_a,question_id_b,similarity_score):
@@ -44,7 +51,7 @@ def insert_related_question(con,question_id_a,question_id_b,similarity_score):
     cur.execute("""
                 INSERT INTO related_question 
                 (question_id_a,question_id_b,similarity_score) 
-                VALUES (?,?,?)
+                VALUES (%s,%s,%s)
                  """,
                  (question_id_a,question_id_b,similarity_score)
                  )
@@ -77,7 +84,7 @@ def get_embedding(con):
     blob = cur.fetchall()
     vec = [None]* (len(blob))
     for i in range(len(blob)):
-        vec[i] = (blob[i][0],np.frombuffer(blob[i][1],dtype = np.float32))
+        vec[i] = (blob[i][0],np.frombuffer(bytes(blob[i][1]),dtype = np.float32))
         
     return vec
 
@@ -102,7 +109,7 @@ def pull_id_withRound(con,round):
         """
         SELECT id
         FROM questions
-        WHERE round = ?
+        WHERE round = %s
         """ 
         ,(round,)   
     )
@@ -117,7 +124,7 @@ def pull_id_withCategory(con,category):
         """
         SELECT id
         FROM questions
-        WHERE category = ?
+        WHERE category = %s
         """ 
         ,(category,)   
     )
@@ -129,7 +136,7 @@ def pull_id_withCategory(con,category):
 
 def select_question(con,id_number):
     cur = con.cursor()
-    cur.execute(" SELECT text,round,category FROM questions WHERE id  = ?",(id_number,))
+    cur.execute(" SELECT text,round,category FROM questions WHERE id  = %s",(id_number,))
     return cur.fetchone()
 
 def exact_search(con,word):
@@ -137,7 +144,7 @@ def exact_search(con,word):
     cur.execute("""
                 SELECT text,round,category
                 FROM questions
-                WHERE text LIKE ?
+                WHERE text LIKE %s
                 """,
                 (f'%{word}%',))
     response = cur.fetchall()
@@ -163,31 +170,31 @@ cat_list   = ",".join("'" + k.replace("'", "''") + "'" for k in CATEGORIES)
 
 # a code to run migration
 
-def migration(con):
-    cur = con.cursor()    
+# def migration(con):
+#     cur = con.cursor()    
      
-    cur.execute(f"""
-                CREATE TABLE questions_new (
-                    id INTEGER PRIMARY KEY,
-                    text TEXT NOT NULL,
-                    round TEXT NOT NULL CHECK (round IN ({round_list})),
-                    category TEXT CHECK (category IN ({cat_list})),
-                    embedding BLOB,
-                    submitted_by INTEGER,
-                    created_at TEXT DEFAULT CURRENT_TIMESTAMP
-                )
-            """)
+#     cur.execute(f"""
+#                 CREATE TABLE questions_new (
+#                     id INTEGER PRIMARY KEY,
+#                     text TEXT NOT NULL,
+#                     round TEXT NOT NULL CHECK (round IN ({round_list})),
+#                     category TEXT CHECK (category IN ({cat_list})),
+#                     embedding BLOB,
+#                     submitted_by INTEGER,
+#                     created_at TEXT DEFAULT CURRENT_TIMESTAMP
+#                 )
+#             """)
     
-    cur.execute("""
-        INSERT INTO questions_new (id, text, round, category, embedding, submitted_by, created_at)
-        SELECT id, text, round, category, embedding, submitted_by, created_at
-        FROM questions
-    """)
+#     cur.execute("""
+#         INSERT INTO questions_new (id, text, round, category, embedding, submitted_by, created_at)
+#         SELECT id, text, round, category, embedding, submitted_by, created_at
+#         FROM questions
+#     """)
     
-    cur.execute("DROP TABLE questions")
-    cur.execute("ALTER TABLE questions_new RENAME TO questions")
+#     cur.execute("DROP TABLE questions")
+#     cur.execute("ALTER TABLE questions_new RENAME TO questions")
     
-    con.commit()
+#     con.commit()
     
 if __name__ == "__main__":
     con = init_db()
