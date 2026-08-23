@@ -48,6 +48,7 @@ async def show_category_options(update:Update,context:ContextTypes.DEFAULT_TYPE)
 
 # call back query handlers
 async def chooseFilter(update:Update,context:ContextTypes.DEFAULT_TYPE) :
+
     query = update.callback_query
     await query.answer() 
     
@@ -63,6 +64,7 @@ async def chooseRound(update:Update,context:ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     chose_round = query.data.split(':', 1)[1]
+    context.user_data['choice'] = chose_round
     
     question_text = getQuestionRound(chose_round)       # chooseRound
     if question_text:
@@ -75,6 +77,8 @@ async def chooseCategory(update:Update,context:ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     chosen_category = query.data.split(':', 1)[1]
+    # persisting the user data until the converstaion end
+    context.user_data['choice'] = chosen_category
      
     question_text = getQuestionCategory(chosen_category)    # chooseCategory
     if question_text:
@@ -82,7 +86,25 @@ async def chooseCategory(update:Update,context:ContextTypes.DEFAULT_TYPE):
     else:
         await query.edit_message_text(text=f'question with this category doesn\'t exist please choose another category',reply_markup=buildInlineKeyboard(CATEGORIES,'cat')) 
         
-        
+   
+async def anotherQuestion(update:Update,context:ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    choice = context.user_data.get('choice')
+    
+
+    if choice in ROUNDS:
+        question_text = getQuestionRound(choice)
+        await query.edit_message_text(text=f'Round: {ROUNDS[choice]}\n\n{question_text}',reply_markup=buildResultKeyboard())
+    elif choice in CATEGORIES:
+        question_text = getQuestionCategory(choice)
+        await query.edit_message_text(f'Category: {CATEGORIES[choice]}\n\n{question_text}',reply_markup=buildResultKeyboard())
+    else:
+        await query.edit_message_text(text=f'Error: Invalid choice. Please try again.',reply_markup=buildResultKeyboard())
+    
+
+
+
 
         
 # helper functions

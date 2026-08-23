@@ -24,6 +24,7 @@ def buildInlineKeyboard(options,prefix):
 
 def buildResultKeyboard():
     keyboard = [
+        [InlineKeyboardButton('another question', callback_data='anotherquestion')],
         [InlineKeyboardButton('🔄 another filter', callback_data='back'),
         InlineKeyboardButton('✅ done',callback_data='done')
         ]

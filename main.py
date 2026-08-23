@@ -7,7 +7,7 @@ from submit import interrupt_with, restart_submit, submit,question_received,roun
 import httpx
 from telegram.request import HTTPXRequest
 from search import search
-from filtering_and_buttons import backToFilter, doneFilter, show_round_options,filterMenu,show_category_options,chooseFilter,chooseRound,chooseCategory
+from filtering_and_buttons import backToFilter, doneFilter, show_round_options,filterMenu,show_category_options,chooseFilter,chooseRound,chooseCategory,anotherQuestion
 
 
 load_dotenv()
@@ -102,6 +102,7 @@ if __name__ == "__main__":
     
     application.add_handler(CallbackQueryHandler(backToFilter, pattern='^back$'))
     application.add_handler(CallbackQueryHandler(doneFilter,pattern='^done$'))
+    application.add_handler(CallbackQueryHandler(anotherQuestion,pattern='^anotherquestion$'))
 
     application.add_error_handler(error_handler)
 
